@@ -1,0 +1,18 @@
+# Виртуальное окружение Python
+venv/
+env/
+
+# Локальные папки нашего сервера
+.backups/
+.logs/
+
+# Конфигурация с локальными путями пользователя
+config.json
+
+# Кэш Python
+__pycache__/
+*.py[cod]
+
+# Системные файлы macOS и Windows
+.DS_Store
+Thumbs.db
