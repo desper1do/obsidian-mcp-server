@@ -29,46 +29,48 @@ def show_connection_info():
     main_py = str(CURRENT_DIR / "main.py")
     python_str = str(PYTHON_PATH)
 
-    claude_config = {
+    # JSON для расширения Claude в VS Code (требует type: stdio)
+    claude_ext_config = {
         "mcpServers": {
             "obsidian-universal": {
                 "command": python_str,
-                "args": [main_py]
+                "args": [main_py],
+                "type": "stdio"
             }
         }
     }
 
-    print("\n=== КАК ПОДКЛЮЧИТЬ К ОФИЦИАЛЬНОМУ CLAUDE (VS Code) ===")
-    print("1. Откройте терминал в VS Code и введите команду:")
-    print("   code ~/.claude/settings.json")
-    print("2. В открывшийся файл вставьте этот код и сохраните (Ctrl+S / Cmd+S):\n")
-    print(json.dumps(claude_config, indent=2, ensure_ascii=False))
+    print("\n=== КАК ПОДКЛЮЧИТЬ К РАСШИРЕНИЮ CLAUDE (VS Code) ===")
+    print("1. Откройте терминал в VS Code и введите:")
+    if IS_WINDOWS:
+        print('   code %APPDATA%\\Claude\\settings.json')
+    else:
+        print('   code ~/.claude/settings.json')
+    print("2. Вставьте этот JSON в открывшийся файл и сохраните:\n")
+    print(json.dumps(claude_ext_config, indent=2, ensure_ascii=False))
 
-    print("\n=== КОМАНДА ДЛЯ CLAUDE CODE (Терминал CLI) ===")
-    print("Выберите пункт 4 в меню, и подключение произойдёт автоматически.")
+    print("\n=== КАК ПОДКЛЮЧИТЬ К CLAUDE CODE CLI ===")
+    print("Выберите пункт 4 — подключение произойдёт автоматически.")
     print(f'Или вручную: claude mcp add obsidian-universal -- "{python_str}" "{main_py}"')
     print("=" * 55)
 
 def connect_claude_code():
-    """Автоматически выполняет claude mcp add с правильными путями."""
     main_py = str(CURRENT_DIR / "main.py")
     python_str = str(PYTHON_PATH)
 
     print("\n[Подключаю MCP сервер к Claude Code...]")
 
-    # Удаляем старую запись если есть (без дублей)
     if IS_WINDOWS:
         os.system('claude mcp remove obsidian-universal 2>nul')
     else:
         os.system('claude mcp remove obsidian-universal 2>/dev/null')
 
-    # ВАЖНО: Двойное тире возвращено для защиты путей с пробелами
     cmd = f'claude mcp add obsidian-universal -- "{python_str}" "{main_py}"'
     result = os.system(cmd)
 
     if result == 0:
-        print("✅ Готово! MCP сервер подключён к Claude Code CLI.")
-        print("   Перезапустите терминал VS Code, затем проверьте командой: claude mcp list")
+        print("✅ Готово! MCP сервер подключён к Claude Code.")
+        print("   Перезапустите VS Code, затем проверьте: claude mcp list")
     else:
         print("❌ Не удалось выполнить команду автоматически.")
         print("   Возможно, Claude Code CLI не установлен или не добавлен в PATH.")
@@ -92,7 +94,7 @@ def main():
         print("\nЧто сделать?")
         print("1. Добавить новую папку")
         print("2. Удалить папку из списка")
-        print("3. Показать JSON для расширения Claude (VS Code)")
+        print("3. Показать JSON для подключения к Claude")
         print("4. Подключить к Claude Code (CLI) автоматически ⚡")
         print("5. Выход")
 
@@ -106,7 +108,7 @@ def main():
                     save_config(config)
                     print("✅ Папка успешно добавлена!")
                 else:
-                    print("⚠️ Эта папка уже есть в списке.")
+                    print("⚠️  Эта папка уже есть в списке.")
             else:
                 print("❌ Ошибка: Папка не найдена. Проверьте путь.")
 
