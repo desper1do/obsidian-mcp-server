@@ -57,9 +57,16 @@ def create_backup(target_path: Path):
 
 @mcp.tool()
 def search_notes(query: str) -> str:
-    """Ищет файлы во всех подключенных базах знаний."""
+    """
+    Ищет файлы во всех подключенных базах знаний.
+    Используй 1-3 ключевых слова для точного поиска.
+    """
     logger.info(f"Поиск: '{query}'")
-    query_lower = query.lower()
+    
+    words = [w.lower() for w in query.split() if len(w) > 2]
+    if not words:
+        words = [query.lower()]
+
     results = []
 
     try:
@@ -75,20 +82,25 @@ def search_notes(query: str) -> str:
                     file_path = Path(root) / file
                     rel_path = file_path.relative_to(base_path).as_posix()
                     
-                    if query_lower in file.lower():
-                        results.append(rel_path)
-                        continue
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
-                            if query_lower in f.read().lower():
-                                results.append(rel_path)
+                            content = f.read().lower()
+                            file_name_lower = file.lower()
+                            
+                            score = sum(1 for w in words if w in content or w in file_name_lower)
+                            
+                            if score > 0:
+                                results.append((score, rel_path))
                     except: pass
-                    
-                    if len(results) >= 15: break
-                if len(results) >= 15: break
-            if len(results) >= 15: break # <-- Тот самый фикс! Выходим из всех баз
-                
-        return "Найдены файлы:\n" + "\n".join(f"- {r}" for r in results) if results else "Ничего не найдено."
+
+        results.sort(key=lambda x: x[0], reverse=True)
+        top_results = [r[1] for r in results[:15]]
+            
+        if top_results:
+            return "Найдены файлы (от самых релевантных):\n" + "\n".join(f"- {r}" for r in top_results)
+        else:
+            return "Ничего не найдено."
+            
     except Exception as e: 
         logger.error(f"Ошибка поиска: {e}")
         return f"Ошибка поиска: {e}"
